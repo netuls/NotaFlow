@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NotaFlow — estoque e notas de entrada</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238fd3ff'/%3E%3Cpath d='M10 8h8l4 4v12H10z' fill='none' stroke='%2306080c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M13 18h6M16 15l3 3-3 3' fill='none' stroke='%2306080c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#07080b;--card:#0f1217;--ink:#f2f7fb;--mut:#8c9aa8;--line:#1f2630;--ac:#8fd3ff;--ac-d:#b9e5ff;--ac-l:#13222e;--ok:#5eead4;--ok-l:#0d2a2a;--er:#ff7a85;--er-l:#2d1216;--wa:#ffd166;--wa-l:#2d2410;--sh:0 0 0 1px rgba(143,211,255,.05),0 10px 30px rgba(0,0,0,.55);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 420px at 88% -8%,rgba(143,211,255,.16),transparent 60%),radial-gradient(700px 380px at -5% 110%,rgba(143,211,255,.08),transparent 60%),var(--bg);background-attachment:fixed;color:var(--ink);font:15px/1.5 "Segoe UI",Inter,system-ui,-apple-system,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:18px 16px 70px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px}.brand b{font-size:23px;letter-spacing:-.4px;display:block;line-height:1.1}.brand small{color:var(--mut)}
+nav{display:flex;gap:4px;overflow-x:auto;margin:18px 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+nav a{padding:8px 16px;border-radius:9px;color:var(--mut);text-decoration:none;font-weight:600;white-space:nowrap}
+nav a.on{background:var(--ac);color:#06080c;box-shadow:0 0 18px rgba(143,211,255,.35)}
+.sair{color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);padding:18px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font-size:17px}
+[hidden]{display:none!important}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--ac);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+.kpi span{color:var(--mut);font-size:13px;font-weight:600}.kpi b{display:block;font-size:26px;letter-spacing:-.5px}
+.kpi.w b{color:var(--wa)}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.pizza{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.pizza svg{width:200px;height:200px;flex:none}.pizza path,.pizza circle{transition:opacity .15s;cursor:pointer}.pizza svg:hover path,.pizza svg:hover circle{opacity:.55}.pizza svg path:hover,.pizza svg circle:hover{opacity:1}
+.leg{flex:1;min-width:160px}.leg div{display:flex;align-items:center;gap:8px;padding:3px 0}.leg i{width:11px;height:11px;border-radius:3px;flex:none}.leg span{flex:1}.leg em{font-style:normal;color:var(--mut)}
+.mut{color:var(--mut)}
+button,.btn{font:inherit;font-weight:700;border:0;background:var(--ac);color:#06080c;padding:9px 16px;border-radius:9px;cursor:pointer;text-decoration:none;display:inline-block;transition:.15s}
+button:hover{background:var(--ac-d)}
+button.sec{background:var(--ac-l);color:var(--ac)}button.sec:hover{filter:brightness(.97)}
+button.sm{padding:4px 9px;font-size:13px;border-radius:7px}
+button.dg{background:var(--er-l);color:var(--er)}
+button:disabled{opacity:.55;cursor:wait}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px}.bar .f{min-width:170px;flex:1}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{font-size:13px;color:var(--mut);text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.r,th.r{text-align:right}tr.off{opacity:.4}td small{display:block;color:var(--mut);font-size:12px}
+.act{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.t-ok{background:var(--ok-l);color:var(--ok)}.t-wa{background:var(--wa-l);color:var(--wa)}.t-er{background:var(--er-l);color:var(--er)}.t-ac{background:var(--ac-l);color:var(--ac)}
+.drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:34px 16px;text-align:center;cursor:pointer;transition:.2s}
+.drop:hover,.drop.on{border-color:var(--ac);background:var(--ac-l)}.drop strong{display:block;font-size:17px}.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop:focus-within{outline:3px solid var(--ac);outline-offset:2px}
+.tabs{display:inline-flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:12px}
+.tabs button{background:none;color:var(--mut);padding:6px 14px}.tabs button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.msg{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--er-l);color:var(--er);font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.chip{background:var(--ac-l);color:var(--ac);padding:4px 12px;border-radius:99px;font-weight:600;font-size:14px}
+.res{display:flex;gap:10px;padding:8px 12px;border-radius:9px;margin-bottom:6px;background:var(--ok-l);color:var(--ok);font-weight:600}.res span{flex:1;color:var(--ink);font-weight:400}.res em{font-style:normal;font-size:13px}
+.foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 0 0;margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+dialog{border:0;border-radius:16px;padding:22px;width:min(440px,94vw);background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,20,40,.55)}dialog h3{margin:0 0 14px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fg .full{grid-column:1/-1}
+.fa{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:g .7s linear infinite;vertical-align:-2px;margin-right:8px}@keyframes g{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:99}.toast.on{opacity:1;transform:translateX(-50%)}
+.empty{padding:26px;text-align:center;color:var(--mut)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.kpi:first-child b{color:var(--ac)}
+.brand b{font-size:25px}
+button:not(.sec):not(.dg):not([aria-selected]):hover{box-shadow:0 0 16px rgba(143,211,255,.4)}
+.tabs button[aria-selected=true]{background:var(--ac);color:#06080c}
+.card{border-color:#1b222c}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#8fd3ff"/><path d="M10 8h8l4 4v12H10z" fill="none" stroke="#06080c" stroke-width="2" stroke-linejoin="round"/><path d="M13 18h6M16 15l3 3-3 3" fill="none" stroke="#06080c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><b>Nota<span style="color:var(--ac)">Flow</span></b><small>Estoque e notas de entrada</small></div>
+  </div>
+  <a class="sair" href="/sair">Sair</a>
+</header>
+<nav id="nav">
+  <a href="#dash" data-v="dash">Dashboard</a><a href="#estoque" data-v="estoque">Estoque</a><a href="#nota" data-v="nota">Entrada de nota</a><a href="#movs" data-v="movs">Movimentações</a><a href="#sync" data-v="sync">Sincronizar</a>
+</nav>
+
+<!-- DASHBOARD -->
+<section data-v="dash">
+  <div class="kpis" id="kpis"></div>
+  <div class="grid2">
+    <div class="card"><h2>Valor em estoque por categoria</h2><div id="pizza"></div></div>
+    <div class="card"><h2>Precisam de reposição</h2><div id="baixos"></div></div>
+  </div>
+  <div class="card"><h2>Últimas movimentações</h2><div class="wrap" id="ultimas"></div></div>
+</section>
+
+<!-- ESTOQUE -->
+<section data-v="estoque" hidden>
+  <div class="card">
+    <div class="bar">
+      <label class="f">Buscar<input id="busca" placeholder="Nome ou código"></label>
+      <label class="f">Categoria<select id="fcat"></select></label>
+      <button id="novo" class="pri">+ Novo insumo</button>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th>Insumo</th><th>Categoria</th><th class="r">Saldo</th><th class="r">Mínimo</th><th class="r">Custo</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead>
+      <tbody id="tbE"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ENTRADA DE NOTA -->
+<section data-v="nota" hidden>
+  <div class="card" id="n1">
+    <h2>Dar entrada pela nota fiscal</h2>
+    <div class="tabs"><button id="t1" aria-selected="true">Arquivo XML</button><button id="t2" aria-selected="false">Colar XML</button></div>
+    <div id="p1"><label class="drop" id="drop"><input type="file" id="arq" accept=".xml,text/xml"><strong>Solte o XML da nota aqui</strong><span class="mut">ou clique para escolher o arquivo</span></label></div>
+    <div id="p2" hidden><textarea id="txt" rows="8" placeholder="Cole o conteúdo do XML da nota" aria-label="Conteúdo do XML" style="font:13px ui-monospace,Consolas,monospace"></textarea><p style="margin:10px 0 0"><button id="ler">Ler nota</button></p></div>
+    <div class="msg" id="msg" role="alert" hidden></div>
+  </div>
+  <div class="card" id="n2" hidden>
+    <div class="bar" style="justify-content:space-between;align-items:center"><h2 id="forn" style="margin:0"></h2><button class="sec" id="outra">Trocar nota</button></div>
+    <div class="chips" id="chips"></div>
+    <div class="bar"><label class="f">Categoria dos itens novos<input id="ncat" list="cats" value="Geral"></label><label class="f" style="flex:0;min-width:0;flex-direction:row;align-items:center"><input type="checkbox" id="todos" checked style="width:auto"> Selecionar todos</label></div>
+    <div class="wrap"><table>
+      <thead><tr><th></th><th>Produto</th><th style="width:90px">Unidade</th><th style="width:120px">Custo unit.</th><th style="width:110px">Quantidade</th></tr></thead>
+      <tbody id="tbN"></tbody>
+    </table></div>
+    <p class="mut" style="font-size:14px;margin:10px 0 0">Item que vem em caixa ou fardo: ajuste unidade, custo e quantidade para a unidade que você controla no estoque.</p>
+    <div class="foot"><span>Total selecionado <b id="tot" style="font-size:19px"></b></span><button id="env" class="pri">Dar entrada no estoque</button></div>
+  </div>
+  <div class="card" id="n3" hidden>
+    <h2 id="rt"></h2><div id="res"></div>
+    <div class="bar" style="margin:12px 0 0"><button id="verE" class="pri">Ver estoque</button><button class="sec" id="nova">Lançar outra nota</button></div>
+  </div>
+</section>
+
+<!-- MOVIMENTAÇÕES -->
+<section data-v="movs" hidden><div class="card"><h2>Histórico de movimentações</h2><div class="wrap" id="todasMovs"></div></div></section>
+
+<!-- SINCRONIZAR -->
+<section data-v="sync" hidden>
+  <div class="card" style="max-width:640px">
+    <h2>Sincronizar com a Cardápio Web</h2>
+    <p class="mut" style="margin-top:0">Opcional. Puxa os insumos cadastrados na Cardápio Web (nome, unidade, categoria e custo) para dentro do NotaFlow. O saldo daqui nunca é alterado pela sincronização, e nada é enviado de volta para lá.</p>
+    <p><span class="tag" id="stag"></span></p>
+    <div class="bar"><a class="btn" id="conectar" href="/oauth/login">Conectar à Cardápio Web</a><button id="puxar" class="pri">Puxar insumos</button></div>
+    <div id="sres"></div>
+  </div>
+  <div class="card" style="max-width:640px;margin-top:16px">
+    <h2>Baixa automática pelas vendas</h2>
+    <p class="mut" style="margin-top:0">O NotaFlow consulta os pedidos da Cardápio Web a cada 30 segundos e dá baixa no estoque quando o pedido é confirmado. Pedido cancelado devolve o saldo. Cada produto é ligado ao insumo pelo código (código externo no cardápio = código do insumo) ou, se não houver código, pelo mesmo nome.</p>
+    <p><span class="tag" id="vtag"></span></p>
+    <div class="bar"><button id="vcheck" class="pri">Verificar pedidos agora</button></div>
+    <div id="vres"></div>
+  </div>
+</section>
+</main>
+
+<datalist id="cats"></datalist>
+
+<dialog id="dI"><form method="dialog" id="fI"><h3 id="tI"></h3>
+  <div class="fg">
+    <label class="f full">Nome<input id="iNome" required></label>
+    <label class="f">Categoria<input id="iCat" list="cats" value="Geral"></label>
+    <label class="f">Unidade<select id="iUn"><option>UN</option><option>KG</option><option>L</option></select></label>
+    <label class="f">Custo por unidade<input id="iCusto" type="number" step="0.01" min="0" value="0"></label>
+    <label class="f">Estoque mínimo<input id="iMin" type="number" step="0.001" min="0" value="0"></label>
+    <label class="f">Código (opcional)<input id="iCod"></label>
+    <label class="f" id="wSaldo">Saldo inicial<input id="iSaldo" type="number" step="0.001" min="0" value="0"></label>
+  </div>
+  <div class="fa"><button type="button" class="sec" data-fecha>Cancelar</button><button id="sI" class="pri">Salvar</button></div>
+</form></dialog>
+
+<dialog id="dM"><form method="dialog" id="fM"><h3 id="tM"></h3>
+  <div class="fg"><label class="f full"><span id="lM">Quantidade</span><input id="mQ" type="number" step="0.001" min="0" required></label>
+  <label class="f full">Observação (opcional)<input id="mObs" maxlength="120" placeholder="Ex.: venda do dia, perda, contagem"></label></div>
+  <div class="fa"><button type="button" class="sec" data-fecha>Cancelar</button><button id="sM" class="pri">Confirmar</button></div>
+</form></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const brl = v => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const nf = v => (+v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+const CORES = ['#8fd3ff', '#ffffff', '#3b9eea', '#5eead4', '#c4b5fd', '#ffd166', '#ff7a85', '#4b5563'];
+let S = { insumos: [], movs: [], conectado: false, podeConectar: false };
+
+const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2200); };
+async function req(url, method = 'GET', body) {
+  const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { location = '/login'; throw new Error('Sessão expirada'); }
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.erro || 'Erro inesperado');
+  return j;
+}
+async function carregar() { S = await req('/api/estado'); render(); }
+
+// ---------- navegação ----------
+function ir() {
+  const v = location.hash.slice(1) || 'dash';
+  document.querySelectorAll('[data-v]').forEach(e => { if (e.tagName === 'SECTION') e.hidden = e.dataset.v !== v; else e.classList.toggle('on', e.dataset.v === v); });
+}
+addEventListener('hashchange', ir);
+
+// ---------- dashboard ----------
+function status(i) { return i.saldo <= 0 ? ['Zerado', 't-er'] : i.minimo > 0 && i.saldo <= i.minimo ? ['Baixo', 't-wa'] : ['OK', 't-ok']; }
+function pizza(dados) {
+  const tot = dados.reduce((a, d) => a + d.valor, 0), R = 90, C = 100;
+  let a0 = -Math.PI / 2;
+  const fat = dados.map((d, k) => {
+    const f = d.valor / tot, a1 = a0 + f * 2 * Math.PI, cor = CORES[k % CORES.length], t = `<title>${esc(d.nome)}: ${brl(d.valor)} (${Math.round(f * 100)}%)</title>`;
+    let p;
+    if (f > .9999) p = `<circle cx="${C}" cy="${C}" r="${R}" fill="${cor}">${t}</circle>`;
+    else p = `<path d="M${C} ${C}L${C + R * Math.cos(a0)} ${C + R * Math.sin(a0)}A${R} ${R} 0 ${f > .5 ? 1 : 0} 1 ${C + R * Math.cos(a1)} ${C + R * Math.sin(a1)}Z" fill="${cor}" stroke="var(--card)" stroke-width="2">${t}</path>`;
+    a0 = a1; return p;
+  }).join('');
+  const leg = dados.map((d, k) => `<div><i style="background:${CORES[k % CORES.length]}"></i><span>${esc(d.nome)}</span><em>${Math.round(d.valor / tot * 100)}% · ${brl(d.valor)}</em></div>`).join('');
+  return `<div class="pizza"><svg viewBox="0 0 200 200" role="img" aria-label="Gráfico de pizza do valor em estoque por categoria">${fat}</svg><div class="leg">${leg}</div></div>`;
+}
+function tabelaMovs(l) {
+  if (!l.length) return '<div class="empty">Nenhuma movimentação ainda.</div>';
+  const tag = { entrada: ['Entrada', 't-ok'], saida: ['Saída', 't-er'], ajuste: ['Ajuste', 't-ac'] };
+  return `<table><thead><tr><th>Data</th><th>Insumo</th><th>Tipo</th><th class="r">Quantidade</th><th>Observação</th></tr></thead><tbody>${l.map(m =>
+    `<tr><td>${new Date(m.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td><td>${esc(m.nome)}</td><td><span class="tag ${tag[m.tipo][1]}">${tag[m.tipo][0]}</span></td><td class="r">${m.qtd > 0 ? '+' : ''}${nf(m.qtd)} ${esc(m.unidade)}</td><td>${esc(m.obs || '')}</td></tr>`).join('')}</tbody></table>`;
+}
+function render() {
+  const I = S.insumos, valor = I.reduce((a, i) => a + i.saldo * i.custo, 0), baixos = I.filter(i => i.saldo <= 0 || (i.minimo > 0 && i.saldo <= i.minimo));
+  const mes = new Date().toISOString().slice(0, 7), movMes = S.movs.filter(m => m.data.startsWith(mes)).length;
+  $('kpis').innerHTML = `<div class="kpi"><span>Valor em estoque</span><b>${brl(valor)}</b></div><div class="kpi"><span>Insumos cadastrados</span><b>${I.length}</b></div><div class="kpi ${baixos.length ? 'w' : ''}"><span>Precisam de reposição</span><b>${baixos.length}</b></div><div class="kpi"><span>Movimentações no mês</span><b>${movMes}</b></div>`;
+  const porCat = {}; I.forEach(i => { const v = i.saldo * i.custo; if (v > 0) porCat[i.categoria] = (porCat[i.categoria] || 0) + v; });
+  let d = Object.entries(porCat).map(([nome, valor]) => ({ nome, valor })).sort((a, b) => b.valor - a.valor);
+  if (d.length > 8) d = d.slice(0, 7).concat({ nome: 'Outras', valor: d.slice(7).reduce((a, x) => a + x.valor, 0) });
+  $('pizza').innerHTML = d.length ? pizza(d) : '<div class="empty">Cadastre insumos com saldo e custo, ou lance uma nota, para ver o gráfico.</div>';
+  $('baixos').innerHTML = baixos.length ? baixos.slice(0, 7).map(i => `<div class="res" style="background:var(--wa-l);color:var(--wa)">${esc(i.nome)}<span></span><em>${nf(i.saldo)} ${i.unidade}${i.minimo ? ' / mín. ' + nf(i.minimo) : ''}</em></div>`).join('') + (baixos.length > 7 ? `<p class="mut">e mais ${baixos.length - 7}…</p>` : '') : '<div class="empty">Tudo certo por aqui. Nenhum item abaixo do mínimo.</div>';
+  $('ultimas').innerHTML = tabelaMovs(S.movs.slice(0, 6));
+  $('todasMovs').innerHTML = tabelaMovs(S.movs);
+  const cats = [...new Set(I.map(i => i.categoria))].sort();
+  $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  const fc = $('fcat').value; $('fcat').innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option ${c === fc ? 'selected' : ''}>${esc(c)}</option>`).join('');
+  estoque();
+  $('stag').className = 'tag ' + (S.conectado ? 't-ok' : 't-wa'); $('stag').textContent = S.conectado ? 'Conectado à Cardápio Web' : 'Não conectado';
+  $('conectar').hidden = S.conectado || !S.podeConectar; $('puxar').hidden = !S.conectado;
+  const V = S.vendas || {}; $('vtag').className = 'tag ' + (V.ativo ? (V.erro ? 't-wa' : 't-ok') : 't-wa'); $('vtag').textContent = V.ativo ? (V.erro ? 'Erro na última consulta' : 'Ligada') : 'Desligada';
+  $('vcheck').hidden = !V.ativo;
+  $('vres').innerHTML = !V.ativo ? '<p class="mut">Para ligar, defina CW_API_KEY no servidor (chave do painel: Configurações → Integrações → API de Integração).</p>'
+    : (V.erro ? `<div class="msg">${esc(V.erro)}</div>` : '') + (V.ultimaExecucao ? `<p class="mut">Última consulta: ${new Date(V.ultimaExecucao).toLocaleString('pt-BR')}${V.ultimoResumo ? ` · ${V.ultimoResumo.baixados} baixados, ${V.ultimoResumo.estornados} devolvidos` : ''}</p>` : '')
+      + ((V.semVinculo || []).length ? `<p class="mut">Vendidos sem insumo correspondente (sem baixa): ${V.semVinculo.map(esc).join(', ')}</p>` : '');
+  if (!S.podeConectar && !S.conectado) $('sres').innerHTML = '<p class="mut">Para usar a sincronização é preciso o client_id do app cadastrado na Cardápio Web (variável CW_CLIENT_ID no servidor). O resto do NotaFlow funciona sem isso.</p>';
+}
+
+// ---------- estoque ----------
+function estoque() {
+  const q = $('busca').value.trim().toLowerCase(), c = $('fcat').value;
+  const l = S.insumos.filter(i => (!c || i.categoria === c) && (!q || (i.nome + ' ' + i.codigo).toLowerCase().includes(q))).sort((a, b) => a.nome.localeCompare(b.nome));
+  $('tbE').innerHTML = l.length ? l.map(i => { const [t, cl] = status(i); return `<tr data-id="${i.id}">
+    <td>${esc(i.nome)}${i.codigo ? `<small>Código ${esc(i.codigo)}</small>` : ''}</td><td>${esc(i.categoria)}</td>
+    <td class="r"><b>${nf(i.saldo)}</b> ${i.unidade}</td><td class="r">${i.minimo ? nf(i.minimo) : '–'}</td><td class="r">${brl(i.custo)}</td><td class="r">${brl(i.saldo * i.custo)}</td>
+    <td><span class="tag ${cl}">${t}</span></td>
+    <td><div class="act"><button class="sm sec" data-a="entrada">+ Entrada</button><button class="sm sec" data-a="saida">− Saída</button><button class="sm sec" data-a="ajuste">Ajustar</button><button class="sm sec" data-a="edit">Editar</button><button class="sm dg" data-a="del" aria-label="Excluir ${esc(i.nome)}">✕</button></div></td></tr>`; }).join('')
+    : `<tr><td colspan="8" class="empty">${S.insumos.length ? 'Nada encontrado com esse filtro.' : 'Estoque vazio. Cadastre um insumo, lance uma nota ou sincronize com a Cardápio Web.'}</td></tr>`;
+}
+$('busca').oninput = estoque; $('fcat').onchange = estoque;
+document.querySelectorAll('[data-fecha]').forEach(b => b.onclick = () => b.closest('dialog').close());
+
+let editId = null;
+function abrirInsumo(i) {
+  editId = i ? i.id : null; $('tI').textContent = i ? 'Editar insumo' : 'Novo insumo'; $('wSaldo').hidden = !!i;
+  $('iNome').value = i ? i.nome : ''; $('iCat').value = i ? i.categoria : 'Geral'; $('iUn').value = i ? i.unidade : 'UN';
+  $('iCusto').value = i ? i.custo : 0; $('iMin').value = i ? i.minimo : 0; $('iCod').value = i ? i.codigo : ''; $('iSaldo').value = 0;
+  $('dI').showModal();
+}
+$('novo').onclick = () => abrirInsumo(null);
+$('fI').onsubmit = async e => {
+  e.preventDefault();
+  const b = { nome: $('iNome').value, categoria: $('iCat').value, unidade: $('iUn').value, custo: $('iCusto').value, minimo: $('iMin').value, codigo: $('iCod').value, saldo: $('iSaldo').value };
+  try { await req(editId ? '/api/insumos/' + editId : '/api/insumos', editId ? 'PUT' : 'POST', b); $('dI').close(); toast('Insumo salvo'); carregar(); } catch (x) { toast(x.message); }
+};
+
+let mov = null;
+const TIT = { entrada: 'Entrada de estoque', saida: 'Saída de estoque', ajuste: 'Ajustar saldo' };
+$('tbE').onclick = async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const i = S.insumos.find(x => x.id === b.closest('tr').dataset.id), a = b.dataset.a;
+  if (a === 'edit') return abrirInsumo(i);
+  if (a === 'del') { if (confirm(`Excluir "${i.nome}"? O histórico de movimentações é mantido.`)) { await req('/api/insumos/' + i.id, 'DELETE'); toast('Insumo excluído'); carregar(); } return; }
+  mov = { i, a }; $('tM').textContent = `${TIT[a]} — ${i.nome}`; $('lM').textContent = a === 'ajuste' ? `Novo saldo (${i.unidade}) — atual: ${nf(i.saldo)}` : `Quantidade (${i.unidade})`;
+  $('mQ').value = ''; $('mObs').value = ''; $('dM').showModal(); $('mQ').focus();
+};
+$('fM').onsubmit = async e => {
+  e.preventDefault();
+  try { await req('/api/movimento', 'POST', { insumoId: mov.i.id, tipo: mov.a, qtd: $('mQ').value, obs: $('mObs').value }); $('dM').close(); toast('Movimentação registrada'); carregar(); } catch (x) { toast(x.message); }
+};
+
+// ---------- entrada de nota ----------
+let nota = null;
+const erro = t => { $('msg').textContent = t; $('msg').hidden = !t; };
+const passo = n => { $('n1').hidden = n !== 1; $('n2').hidden = n !== 2; $('n3').hidden = n !== 3; scrollTo({ top: 0, behavior: 'smooth' }); };
+const aba = n => { $('p1').hidden = n !== 1; $('p2').hidden = n !== 2; $('t1').setAttribute('aria-selected', n === 1); $('t2').setAttribute('aria-selected', n === 2); erro(''); };
+$('t1').onclick = () => aba(1); $('t2').onclick = () => aba(2);
+const unidade = u => { u = (u || '').toUpperCase(); return ['KG', 'KGS'].includes(u) ? 'KG' : ['L', 'LT', 'LTS'].includes(u) ? 'L' : 'UN'; };
+const tx = (el, tag) => { const n = el.getElementsByTagName(tag)[0]; return n ? n.textContent.trim() : ''; };
+function lerXml(txt) {
+  const d = new DOMParser().parseFromString(txt, 'application/xml');
+  if (d.getElementsByTagName('parsererror').length) throw new Error('Esse arquivo não é um XML válido. Confira se copiou a nota inteira.');
+  const inf = d.getElementsByTagName('infNFe')[0];
+  if (!inf) throw new Error('Não encontrei uma NF-e nesse XML.');
+  const emit = d.getElementsByTagName('emit')[0];
+  const itens = [...d.getElementsByTagName('det')].map(det => { const p = det.getElementsByTagName('prod')[0];
+    return { on: true, codigo: tx(p, 'cProd'), nome: tx(p, 'xProd'), unidade: unidade(tx(p, 'uCom')), custo: parseFloat(tx(p, 'vUnCom')) || 0, qtd: parseFloat(tx(p, 'qCom')) || 0, uCom: tx(p, 'uCom') }; });
+  return { chave: (inf.getAttribute('Id') || '').replace('NFe', ''), fornecedor: emit ? tx(emit, 'xNome') : '', itens };
+}
+function resumo() {
+  const s = nota.itens.filter(i => i.on);
+  $('chips').innerHTML = `<span class="chip">${nota.itens.length} itens na nota</span><span class="chip">${s.length} selecionados</span>`;
+  $('tot').textContent = brl(s.reduce((a, i) => a + i.qtd * i.custo, 0)); $('env').disabled = !s.length; $('todos').checked = s.length === nota.itens.length;
+}
+function mostrar() {
+  $('forn').textContent = nota.fornecedor || 'Nota de entrada';
+  $('tbN').innerHTML = nota.itens.map((i, k) => `<tr data-k="${k}"><td><input type="checkbox" checked data-f="on" style="width:auto" aria-label="Incluir ${esc(i.nome)}"></td>
+    <td><input value="${esc(i.nome)}" data-f="nome"><small>Código ${esc(i.codigo)} · vem em ${esc(i.uCom)}</small></td>
+    <td><select data-f="unidade">${['UN', 'KG', 'L'].map(u => `<option ${u === i.unidade ? 'selected' : ''}>${u}</option>`).join('')}</select></td>
+    <td><input type="number" step="0.01" min="0" value="${i.custo.toFixed(2)}" data-f="custo"></td>
+    <td><input type="number" step="0.001" min="0" value="${i.qtd}" data-f="qtd"></td></tr>`).join('');
+  resumo(); passo(2);
+}
+$('tbN').addEventListener('input', e => {
+  const tr = e.target.closest('tr'), f = e.target.dataset.f; if (!f) return; const i = nota.itens[tr.dataset.k];
+  if (f === 'on') { i.on = e.target.checked; tr.classList.toggle('off', !i.on); } else i[f] = (f === 'custo' || f === 'qtd') ? parseFloat(e.target.value) || 0 : e.target.value;
+  resumo();
+});
+$('todos').onchange = e => { nota.itens.forEach(i => i.on = e.target.checked); document.querySelectorAll('#tbN tr').forEach(tr => { tr.classList.toggle('off', !e.target.checked); tr.querySelector('[data-f=on]').checked = e.target.checked; }); resumo(); };
+function abrir(txt) { try { erro(''); nota = lerXml(txt); mostrar(); } catch (e) { erro(e.message); } }
+$('arq').onchange = async e => { if (e.target.files[0]) abrir(await e.target.files[0].text()); e.target.value = ''; };
+$('ler').onclick = () => $('txt').value.trim() ? abrir($('txt').value) : erro('Cole o XML da nota no campo antes de ler.');
+const dz = $('drop');
+dz.ondragover = e => { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = () => dz.classList.remove('on');
+dz.ondrop = async e => { e.preventDefault(); dz.classList.remove('on'); if (e.dataTransfer.files[0]) abrir(await e.dataTransfer.files[0].text()); };
+$('outra').onclick = $('nova').onclick = () => { $('txt').value = ''; nota = null; passo(1); };
+$('verE').onclick = () => { location.hash = '#estoque'; passo(1); };
+$('env').onclick = async () => {
+  const sel = nota.itens.filter(i => i.on);
+  $('env').disabled = true; $('env').innerHTML = '<span class="sp"></span>Lançando…';
+  try {
+    const r = await req('/api/nota', 'POST', { chave: nota.chave, fornecedor: nota.fornecedor, itens: sel.map(i => ({ ...i, categoria: $('ncat').value || 'Geral' })) });
+    $('rt').textContent = `${r.length} itens lançados no estoque`;
+    $('res').innerHTML = r.map(x => `<div class="res">✓<span>${esc(x.nome)}</span><em>${esc(x.acao)} · saldo ${nf(x.saldo)} ${esc(x.unidade)}</em></div>`).join('');
+    passo(3); carregar();
+  } catch (e) { toast(e.message); }
+  $('env').disabled = false; $('env').textContent = 'Dar entrada no estoque';
+};
+
+// ---------- sincronização ----------
+$('puxar').onclick = async () => {
+  $('puxar').disabled = true; $('puxar').innerHTML = '<span class="sp"></span>Puxando…';
+  try { const r = await req('/api/sincronizar', 'POST'); $('sres').innerHTML = `<div class="res">✓<span>${r.total} insumos na Cardápio Web</span><em>${r.novos} novos · ${r.atualizados} atualizados</em></div>`; carregar(); }
+  catch (e) { $('sres').innerHTML = `<div class="msg">${esc(e.message)}</div>`; }
+  $('puxar').disabled = false; $('puxar').textContent = 'Puxar insumos';
+};
+
+$('vcheck').onclick = async () => {
+  $('vcheck').disabled = true; $('vcheck').innerHTML = '<span class="sp"></span>Consultando…';
+  try { await req('/api/vendas/verificar', 'POST'); await carregar(); } catch (e) { toast(e.message); }
+  $('vcheck').disabled = false; $('vcheck').textContent = 'Verificar pedidos agora';
+};
+
+ir(); carregar().catch(e => toast(e.message));
+</script>
+</body>
+</html>

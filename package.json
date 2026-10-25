@@ -1,0 +1,16 @@
+{
+  "name": "notaflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NotaFlow: da nota fiscal ao estoque da Cardápio Web",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
