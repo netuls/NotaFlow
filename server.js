@@ -22,9 +22,29 @@ const API = BASE + '/api/partner/v1';
 // ---------- armazenamento ----------
 const ARQ = 'dados.json';
 let ref = null;
+// Aceita o JSON da chave puro, entre aspas, ou convertido em base64 (uma linha só).
+function lerChaveFirebase(v) {
+  v = String(v || '').trim();
+  if (v.length > 1 && ((v[0] === '"' && v.endsWith('"')) || (v[0] === "'" && v.endsWith("'")))) v = v.slice(1, -1).trim();
+  for (const t of [() => v, () => Buffer.from(v, 'base64').toString('utf8')]) {
+    try {
+      const o = JSON.parse(t());
+      if (o && o.private_key && o.client_email) { o.private_key = String(o.private_key).replace(/\\n/g, '\n'); return o; }
+    } catch (e) { /* tenta o próximo formato */ }
+  }
+  return null;
+}
 if (E.FIREBASE_SERVICE_ACCOUNT) {
+  const chave = lerChaveFirebase(E.FIREBASE_SERVICE_ACCOUNT);
+  if (!chave) {
+    const v = String(E.FIREBASE_SERVICE_ACCOUNT).trim();
+    console.error('ERRO: FIREBASE_SERVICE_ACCOUNT não é a chave de conta de serviço do Firebase.');
+    console.error('O valor tem ' + v.length + ' caracteres e começa com "' + v.slice(0, 1) + '". O certo é começar com "{" e conter "private_key" e "client_email".');
+    console.error('Baixe em Firebase > Configurações do projeto > Contas de serviço > Gerar nova chave privada. Ou apague a variável para usar o arquivo local (só para teste).');
+    process.exit(1);
+  }
   const admin = require('firebase-admin');
-  admin.initializeApp({ credential: admin.credential.cert(JSON.parse(E.FIREBASE_SERVICE_ACCOUNT)) });
+  admin.initializeApp({ credential: admin.credential.cert(chave) });
   ref = admin.firestore().doc('notaflow/estado');
 }
 let db = { insumos: [], movs: [], notas: [], notasLista: [], migrado: false, vendas: {}, vendasCfg: {}, cwToken: null };
