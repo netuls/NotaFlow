@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NotaFlow — estoque e notas de entrada</title>
+<title>NotaFlow — controle de estoque e notas de entrada</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238fd3ff'/%3E%3Cpath d='M10 8h8l4 4v12H10z' fill='none' stroke='%2306080c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M13 18h6M16 15l3 3-3 3' fill='none' stroke='%2306080c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#07080b;--card:#0f1217;--ink:#f2f7fb;--mut:#8c9aa8;--line:#1f2630;--ac:#8fd3ff;--ac-d:#b9e5ff;--ac-l:#13222e;--ok:#5eead4;--ok-l:#0d2a2a;--er:#ff7a85;--er-l:#2d1216;--wa:#ffd166;--wa-l:#2d2410;--sh:0 0 0 1px rgba(143,211,255,.05),0 10px 30px rgba(0,0,0,.55);color-scheme:dark}
@@ -64,45 +64,85 @@ dialog::backdrop{background:rgba(10,20,40,.55)}dialog h3{margin:0 0 14px}
 .empty{padding:26px;text-align:center;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .kpi:first-child b{color:var(--ac)}
+.kpi small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+input[type=number]{min-width:80px}
 .brand b{font-size:25px}
 button:not(.sec):not(.dg):not([aria-selected]):hover{box-shadow:0 0 16px rgba(143,211,255,.4)}
 .tabs button[aria-selected=true]{background:var(--ac);color:#06080c}
 .card{border-color:#1b222c}
+
+.app{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:22px;padding:22px 14px;background:rgba(15,18,23,.82);border-right:1px solid var(--line);overflow-y:auto}
+.side .brand small{display:block;font-size:12px;line-height:1.3;margin-top:3px}
+.side nav{flex-direction:column;margin:0;padding:0;background:none;border:0;border-radius:0;overflow:visible;gap:4px}
+.side nav a{display:flex;align-items:center;gap:11px;padding:10px 13px;white-space:normal}
+.side nav a svg{flex:none}
+.sfoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:0 4px}
+main{margin:0 auto;width:100%;padding:24px 28px 70px}
+@media(max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.side{position:static;height:auto;gap:14px;padding:14px 12px;border-right:0;border-bottom:1px solid var(--line)}
+ .side nav{flex-direction:row;overflow-x:auto}.side nav a{white-space:nowrap}.sfoot{flex-direction:row;margin-top:0}main{padding:16px 12px 60px}}
+.pg{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.pg h1{margin:0;font-size:26px;letter-spacing:-.5px}.pg span{color:var(--mut);font-size:14px;display:inline-block}.pg span::first-letter{text-transform:uppercase}
+.chart svg{width:100%;height:auto;display:block}.chart .gl{stroke:var(--line);stroke-width:1}.chart text{fill:var(--mut);font-size:11px}
+.lg{display:flex;gap:16px;margin:0 0 8px;font-size:13px;color:var(--mut)}.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.rank{display:grid;gap:12px}.rank div b{font-weight:600}.rank .tr{height:8px;border-radius:99px;background:var(--bg);margin-top:5px;overflow:hidden}.rank .tr i{display:block;height:100%;border-radius:99px;background:var(--ac)}
+.rank .l{display:flex;justify-content:space-between;gap:10px}.rank .l em{font-style:normal;color:var(--mut);white-space:nowrap}
 </style>
 </head>
 <body>
-<main>
-<header>
+<div class="app">
+<aside class="side">
   <div class="brand">
     <svg width="40" height="40" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#8fd3ff"/><path d="M10 8h8l4 4v12H10z" fill="none" stroke="#06080c" stroke-width="2" stroke-linejoin="round"/><path d="M13 18h6M16 15l3 3-3 3" fill="none" stroke="#06080c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <div><b>Nota<span style="color:var(--ac)">Flow</span></b><small>Estoque e notas de entrada</small></div>
+    <div><b>Nota<span style="color:var(--ac)">Flow</span></b><small>Controle de estoque e notas de entrada</small></div>
   </div>
-  <a class="sair" href="/sair">Sair</a>
-</header>
-<nav id="nav">
-  <a href="#dash" data-v="dash">Dashboard</a><a href="#estoque" data-v="estoque">Estoque</a><a href="#nota" data-v="nota">Entrada de nota</a><a href="#movs" data-v="movs">Movimentações</a><a href="#sync" data-v="sync">Sincronizar</a>
-</nav>
+  <nav id="nav"><a href="#dash" data-v="dash"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg><span>Dashboard</span></a><a href="#estoque" data-v="estoque"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Estoque</span></a><a href="#nota" data-v="nota"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M12 11v6M9 14l3 3 3-3"/></svg><span>Entrada de nota</span></a><a href="#notas" data-v="notas"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg><span>Notas e fornecedores</span></a><a href="#saida" data-v="saida"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 7l5 5-5 5M20 4v16"/></svg><span>Saída rápida</span></a><a href="#inventario" data-v="inventario"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v3H8zM6 5H5v16h14V5h-1M9 14l2 2 4-4"/></svg><span>Inventário</span></a><a href="#movs" data-v="movs"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4"/></svg><span>Movimentações</span></a></nav>
+  <div class="sfoot"><a class="sair" href="/sair">Sair</a></div>
+</aside>
+<main>
+<div class="pg"><h1 id="pgT"></h1><span id="pgD"></span></div>
 
 <!-- DASHBOARD -->
 <section data-v="dash">
+  <div class="card">
+    <div class="bar" style="margin:0">
+      <label class="f">Período
+        <select id="dPer">
+          <option value="hoje">Hoje</option><option value="7d">Últimos 7 dias</option><option value="30d">Últimos 30 dias</option>
+          <option value="mes" selected>Este mês</option><option value="mesAnt">Mês passado</option><option value="tudo">Todo o histórico</option><option value="custom">Personalizado…</option>
+        </select>
+      </label>
+      <label class="f" id="wDe" hidden>De<input type="date" id="dDe"></label>
+      <label class="f" id="wAte" hidden>Até<input type="date" id="dAte"></label>
+      <label class="f">Categoria<select id="dCat"></select></label>
+      <button class="sec" id="dLimpa">Limpar filtros</button>
+    </div>
+    <p class="mut" style="margin:10px 0 0;font-size:14px" id="dRot"></p>
+  </div>
   <div class="kpis" id="kpis"></div>
   <div class="grid2">
-    <div class="card"><h2>Valor em estoque por categoria</h2><div id="pizza"></div></div>
+    <div class="card"><h2 id="tPizza">Valor em estoque por categoria</h2><div id="pizza"></div></div>
     <div class="card"><h2>Precisam de reposição</h2><div id="baixos"></div></div>
   </div>
-  <div class="card"><h2>Últimas movimentações</h2><div class="wrap" id="ultimas"></div></div>
+  <div class="grid2">
+    <div class="card chart"><h2>Compras e saídas no período</h2><div id="barras"></div></div>
+    <div class="card"><h2>Mais saídas no período</h2><div id="top"></div></div>
+  </div>
+  <div class="card"><h2>Movimentações do período</h2><div class="wrap" id="ultimas"></div></div>
 </section>
 
 <!-- ESTOQUE -->
 <section data-v="estoque" hidden>
   <div class="card">
     <div class="bar">
-      <label class="f">Buscar<input id="busca" placeholder="Nome ou código"></label>
+      <label class="f">Buscar<input id="busca" placeholder="Nome, código ou EAN"></label>
       <label class="f">Categoria<select id="fcat"></select></label>
+      <label class="f">Situação<select id="fsit"><option value="">Todas</option><option>OK</option><option>Baixo</option><option>Zerado</option></select></label>
       <button id="novo" class="pri">+ Novo insumo</button>
+      <button id="expE" class="sec">Exportar CSV</button>
     </div>
-    <div class="wrap"><table>
-      <thead><tr><th>Insumo</th><th>Categoria</th><th class="r">Saldo</th><th class="r">Mínimo</th><th class="r">Custo</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead>
+    <div class="wrap"><table style="min-width:900px">
+      <thead><tr><th>Insumo</th><th>Categoria</th><th class="r">Saldo</th><th class="r">Mínimo</th><th class="r">Custo</th><th class="r">Venda</th><th class="r">Margem</th><th class="r">Valor</th><th>Situação</th><th></th></tr></thead>
       <tbody id="tbE"></tbody>
     </table></div>
   </div>
@@ -113,7 +153,7 @@ button:not(.sec):not(.dg):not([aria-selected]):hover{box-shadow:0 0 16px rgba(14
   <div class="card" id="n1">
     <h2>Dar entrada pela nota fiscal</h2>
     <div class="tabs"><button id="t1" aria-selected="true">Arquivo XML</button><button id="t2" aria-selected="false">Colar XML</button></div>
-    <div id="p1"><label class="drop" id="drop"><input type="file" id="arq" accept=".xml,text/xml"><strong>Solte o XML da nota aqui</strong><span class="mut">ou clique para escolher o arquivo</span></label></div>
+    <div id="p1"><label class="drop" id="drop"><input type="file" id="arq" accept=".xml,text/xml" multiple><strong>Solte o XML da nota aqui</strong><span class="mut">ou clique para escolher. Pode escolher vários arquivos de uma vez.</span></label></div>
     <div id="p2" hidden><textarea id="txt" rows="8" placeholder="Cole o conteúdo do XML da nota" aria-label="Conteúdo do XML" style="font:13px ui-monospace,Consolas,monospace"></textarea><p style="margin:10px 0 0"><button id="ler">Ler nota</button></p></div>
     <div class="msg" id="msg" role="alert" hidden></div>
   </div>
@@ -128,35 +168,90 @@ button:not(.sec):not(.dg):not([aria-selected]):hover{box-shadow:0 0 16px rgba(14
     <p class="mut" style="font-size:14px;margin:10px 0 0">Item que vem em caixa ou fardo: ajuste unidade, custo e quantidade para a unidade que você controla no estoque.</p>
     <div class="foot"><span>Total selecionado <b id="tot" style="font-size:19px"></b></span><button id="env" class="pri">Dar entrada no estoque</button></div>
   </div>
+  <div class="card" id="n4" hidden>
+    <div class="bar" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Notas do lote</h2><button class="sec" id="loteVolta">Trocar arquivos</button></div>
+    <p class="mut" style="margin-top:0">Os itens entram com a unidade, o custo e a quantidade que vêm no XML. Para ajustar uma nota (por exemplo, item que vem em caixa), clique em Revisar.</p>
+    <div class="bar"><label class="f">Categoria dos itens novos<input id="lcat" list="cats" value="Geral"></label></div>
+    <div class="wrap"><table>
+      <thead><tr><th></th><th>Arquivo</th><th>Fornecedor</th><th class="r">Itens</th><th class="r">Total</th><th>Situação</th><th></th></tr></thead>
+      <tbody id="tbL"></tbody>
+    </table></div>
+    <div class="foot"><span>Total selecionado <b id="ltot" style="font-size:19px"></b></span><button id="lenv" class="pri">Lançar notas</button></div>
+  </div>
   <div class="card" id="n3" hidden>
     <h2 id="rt"></h2><div id="res"></div>
     <div class="bar" style="margin:12px 0 0"><button id="verE" class="pri">Ver estoque</button><button class="sec" id="nova">Lançar outra nota</button></div>
   </div>
 </section>
 
-<!-- MOVIMENTAÇÕES -->
-<section data-v="movs" hidden><div class="card"><h2>Histórico de movimentações</h2><div class="wrap" id="todasMovs"></div></div></section>
 
-<!-- SINCRONIZAR -->
-<section data-v="sync" hidden>
-  <div class="card" style="max-width:640px">
-    <h2>Sincronizar com a Cardápio Web</h2>
-    <p class="mut" style="margin-top:0">Opcional. Puxa os insumos cadastrados na Cardápio Web (nome, unidade, categoria e custo) para dentro do NotaFlow. O saldo daqui nunca é alterado pela sincronização, e nada é enviado de volta para lá.</p>
-    <p><span class="tag" id="stag"></span></p>
-    <div class="bar"><a class="btn" id="conectar" href="/oauth/login">Conectar à Cardápio Web</a><button id="puxar" class="pri">Puxar insumos</button></div>
-    <div id="sres"></div>
+<!-- NOTAS E FORNECEDORES -->
+<section data-v="notas" hidden>
+  <div class="card">
+    <div class="bar">
+      <label class="f">Buscar<input id="buscaN" placeholder="Fornecedor ou chave da nota"></label>
+      <button id="expN" class="sec">Exportar CSV</button>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th>Data</th><th>Fornecedor</th><th class="r">Itens</th><th class="r">Total</th><th>Situação</th><th></th></tr></thead>
+      <tbody id="tbN2"></tbody>
+    </table></div>
+    <p class="mut" style="font-size:14px;margin:10px 0 0">Estornar uma nota retira do estoque o que ela trouxe e desfaz o custo médio. Só é possível se os itens ainda estiverem em estoque.</p>
   </div>
-  <div class="card" style="max-width:640px;margin-top:16px">
-    <h2>Baixa automática pelas vendas</h2>
-    <p class="mut" style="margin-top:0">O NotaFlow consulta os pedidos da Cardápio Web a cada 30 segundos e dá baixa no estoque quando o pedido é confirmado. Pedido cancelado devolve o saldo. Cada produto é ligado ao insumo pelo código (código externo no cardápio = código do insumo) ou, se não houver código, pelo mesmo nome.</p>
-    <p><span class="tag" id="vtag"></span></p>
-    <div class="bar"><button id="vcheck" class="pri">Verificar pedidos agora</button></div>
-    <div id="vres"></div>
+  <div class="card"><h2>Compras por fornecedor</h2><div class="wrap" id="forns"></div></div>
+</section>
+
+<!-- SAÍDA RÁPIDA -->
+<section data-v="saida" hidden>
+  <div class="card">
+    <h2>Saída rápida</h2>
+    <p class="mut" style="margin-top:0">Digite ou leia o código de barras (também vale código ou nome) e tecle Enter. Dá para lançar vários itens de uma vez.</p>
+    <div class="bar">
+      <label class="f" style="flex:3">Item<input id="sBusca" list="sug" placeholder="Código de barras, código ou nome" autocomplete="off"></label>
+      <label class="f" style="flex:0;min-width:100px">Qtd<input id="sQtd" type="number" min="0.001" step="0.001" value="1"></label>
+      <button id="sAdd" class="pri">Adicionar</button>
+    </div>
+    <div class="wrap"><table style="min-width:520px">
+      <thead><tr><th>Item</th><th class="r">Saldo</th><th style="width:130px">Quantidade</th><th></th></tr></thead>
+      <tbody id="tbS"></tbody>
+    </table></div>
+    <div class="foot"><label class="f" style="flex:1;max-width:340px">Observação (opcional)<input id="sObs" maxlength="120" placeholder="Ex.: venda no balcão"></label><button id="sOk" class="pri">Dar saída</button></div>
+  </div>
+</section>
+
+<!-- INVENTÁRIO -->
+<section data-v="inventario" hidden>
+  <div class="card">
+    <h2>Contagem de inventário</h2>
+    <p class="mut" style="margin-top:0">Digite quanto você contou de cada item. Os itens que ficarem em branco não são alterados. Ao aplicar, o saldo dos itens com diferença é ajustado.</p>
+    <div class="bar">
+      <label class="f">Buscar<input id="buscaI" placeholder="Nome, código ou EAN"></label>
+      <label class="f">Categoria<select id="fcatI"></select></label>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th>Insumo</th><th>Categoria</th><th class="r">Sistema</th><th class="r" style="width:130px">Contado</th><th class="r">Diferença</th><th class="r">Valor</th></tr></thead>
+      <tbody id="tbI"></tbody>
+    </table></div>
+    <div class="foot"><span class="mut" id="resI"></span><span class="act"><button class="sec" id="limpaI">Limpar contagem</button><button class="pri" id="aplicaI">Aplicar ajustes</button></span></div>
+  </div>
+</section>
+
+<!-- MOVIMENTAÇÕES -->
+<section data-v="movs" hidden>
+  <div class="card">
+    <div class="bar">
+      <label class="f">Buscar<input id="buscaM" placeholder="Insumo ou observação"></label>
+      <label class="f">Tipo<select id="ftipo"><option value="">Todos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option></select></label>
+      <button id="expM" class="sec">Exportar CSV</button>
+    </div>
+    <div class="wrap" id="todasMovs"></div>
   </div>
 </section>
 </main>
+</div>
 
 <datalist id="cats"></datalist>
+<datalist id="sug"></datalist>
 
 <dialog id="dI"><form method="dialog" id="fI"><h3 id="tI"></h3>
   <div class="fg">
@@ -164,8 +259,10 @@ button:not(.sec):not(.dg):not([aria-selected]):hover{box-shadow:0 0 16px rgba(14
     <label class="f">Categoria<input id="iCat" list="cats" value="Geral"></label>
     <label class="f">Unidade<select id="iUn"><option>UN</option><option>KG</option><option>L</option></select></label>
     <label class="f">Custo por unidade<input id="iCusto" type="number" step="0.01" min="0" value="0"></label>
+    <label class="f">Preço de venda<input id="iPreco" type="number" step="0.01" min="0" value="0"></label>
     <label class="f">Estoque mínimo<input id="iMin" type="number" step="0.001" min="0" value="0"></label>
     <label class="f">Código (opcional)<input id="iCod"></label>
+    <label class="f">Código de barras / EAN (opcional)<input id="iEan" inputmode="numeric"></label>
     <label class="f" id="wSaldo">Saldo inicial<input id="iSaldo" type="number" step="0.001" min="0" value="0"></label>
   </div>
   <div class="fa"><button type="button" class="sec" data-fecha>Cancelar</button><button id="sI" class="pri">Salvar</button></div>
@@ -183,10 +280,13 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const brl = v => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const nf = v => (+v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+const num = v => Math.round((+v || 0) * 1000) / 1000;
+const norm = s => String(s || '').trim().toLowerCase();
+const fmtData = d => d ? new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '–';
 const CORES = ['#8fd3ff', '#ffffff', '#3b9eea', '#5eead4', '#c4b5fd', '#ffd166', '#ff7a85', '#4b5563'];
-let S = { insumos: [], movs: [], conectado: false, podeConectar: false };
+let S = { insumos: [], movs: [], notas: [] };
 
-const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2200); };
+const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2200 + t.length * 45); };
 async function req(url, method = 'GET', body) {
   const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
   if (r.status === 401) { location = '/login'; throw new Error('Sessão expirada'); }
@@ -194,17 +294,47 @@ async function req(url, method = 'GET', body) {
   if (!r.ok) throw new Error(j.erro || 'Erro inesperado');
   return j;
 }
-async function carregar() { S = await req('/api/estado'); render(); }
+async function carregar() {
+  const r = await req('/api/estado');
+  S = { insumos: r.insumos || [], movs: r.movs || [], notas: (r.notas || []).map(n => ({ ...n, itens: n.itens || [] })) };
+  if (!r.notas) toast('Atualize também o server.js: a lista de notas não veio do servidor.');
+  render();
+}
+
+// ---------- exportar CSV ----------
+const dec = v => String(num(v)).replace('.', ',');
+function baixar(nome, linhas) {
+  const csv = '\uFEFF' + linhas.map(l => l.map(c => { c = String(c == null ? '' : c); return /[;"\n\r]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = nome + '-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
 
 // ---------- navegação ----------
 function ir() {
   const v = location.hash.slice(1) || 'dash';
   document.querySelectorAll('[data-v]').forEach(e => { if (e.tagName === 'SECTION') e.hidden = e.dataset.v !== v; else e.classList.toggle('on', e.dataset.v === v); });
+  const on = document.querySelector('nav a.on span'); $('pgT').textContent = on ? on.textContent : '';
+  if (v === 'saida') setTimeout(() => $('sBusca').focus(), 0);
 }
 addEventListener('hashchange', ir);
+$('pgD').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 // ---------- dashboard ----------
-function status(i) { return i.saldo <= 0 ? ['Zerado', 't-er'] : i.minimo > 0 && i.saldo <= i.minimo ? ['Baixo', 't-wa'] : ['OK', 't-ok']; }
+const status = i => i.saldo <= 0 ? ['Zerado', 't-er'] : i.minimo > 0 && i.saldo <= i.minimo ? ['Baixo', 't-wa'] : ['OK', 't-ok'];
+const F = { per: 'mes', de: '', ate: '', cat: '' };
+function periodo() {
+  const ag = new Date(), y = ag.getFullYear(), m = ag.getMonth(), d0 = new Date(y, m, ag.getDate()), dia = 864e5, FIM = new Date(8.64e15), INI = new Date(0);
+  switch (F.per) {
+    case 'hoje': return [d0, new Date(+d0 + dia)];
+    case '7d': return [new Date(+d0 - 6 * dia), new Date(+d0 + dia)];
+    case '30d': return [new Date(+d0 - 29 * dia), new Date(+d0 + dia)];
+    case 'mes': return [new Date(y, m, 1), new Date(y, m + 1, 1)];
+    case 'mesAnt': return [new Date(y, m - 1, 1), new Date(y, m, 1)];
+    case 'custom': return [F.de ? new Date(F.de + 'T00:00:00') : INI, F.ate ? new Date(+new Date(F.ate + 'T00:00:00') + dia) : FIM];
+    default: return [INI, FIM];
+  }
+}
 function pizza(dados) {
   const tot = dados.reduce((a, d) => a + d.valor, 0), R = 90, C = 100;
   let a0 = -Math.PI / 2;
@@ -216,64 +346,130 @@ function pizza(dados) {
     a0 = a1; return p;
   }).join('');
   const leg = dados.map((d, k) => `<div><i style="background:${CORES[k % CORES.length]}"></i><span>${esc(d.nome)}</span><em>${Math.round(d.valor / tot * 100)}% · ${brl(d.valor)}</em></div>`).join('');
-  return `<div class="pizza"><svg viewBox="0 0 200 200" role="img" aria-label="Gráfico de pizza do valor em estoque por categoria">${fat}</svg><div class="leg">${leg}</div></div>`;
+  return `<div class="pizza"><svg viewBox="0 0 200 200" role="img" aria-label="Gráfico de pizza do valor em estoque">${fat}</svg><div class="leg">${leg}</div></div>`;
 }
-function tabelaMovs(l) {
-  if (!l.length) return '<div class="empty">Nenhuma movimentação ainda.</div>';
-  const tag = { entrada: ['Entrada', 't-ok'], saida: ['Saída', 't-er'], ajuste: ['Ajuste', 't-ac'] };
+const TAG = { entrada: ['Entrada', 't-ok'], saida: ['Saída', 't-er'], ajuste: ['Ajuste', 't-ac'] };
+function tabelaMovs(l, vazio = 'Nenhuma movimentação ainda.') {
+  if (!l.length) return `<div class="empty">${vazio}</div>`;
   return `<table><thead><tr><th>Data</th><th>Insumo</th><th>Tipo</th><th class="r">Quantidade</th><th>Observação</th></tr></thead><tbody>${l.map(m =>
-    `<tr><td>${new Date(m.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td><td>${esc(m.nome)}</td><td><span class="tag ${tag[m.tipo][1]}">${tag[m.tipo][0]}</span></td><td class="r">${m.qtd > 0 ? '+' : ''}${nf(m.qtd)} ${esc(m.unidade)}</td><td>${esc(m.obs || '')}</td></tr>`).join('')}</tbody></table>`;
+    `<tr><td>${fmtData(m.data)}</td><td>${esc(m.nome)}</td><td><span class="tag ${TAG[m.tipo][1]}">${TAG[m.tipo][0]}</span></td><td class="r">${m.qtd > 0 ? '+' : ''}${nf(m.qtd)} ${esc(m.unidade)}</td><td>${esc(m.obs || '')}</td></tr>`).join('')}</tbody></table>`;
 }
-function render() {
-  const I = S.insumos, valor = I.reduce((a, i) => a + i.saldo * i.custo, 0), baixos = I.filter(i => i.saldo <= 0 || (i.minimo > 0 && i.saldo <= i.minimo));
-  const mes = new Date().toISOString().slice(0, 7), movMes = S.movs.filter(m => m.data.startsWith(mes)).length;
-  $('kpis').innerHTML = `<div class="kpi"><span>Valor em estoque</span><b>${brl(valor)}</b></div><div class="kpi"><span>Insumos cadastrados</span><b>${I.length}</b></div><div class="kpi ${baixos.length ? 'w' : ''}"><span>Precisam de reposição</span><b>${baixos.length}</b></div><div class="kpi"><span>Movimentações no mês</span><b>${movMes}</b></div>`;
-  const porCat = {}; I.forEach(i => { const v = i.saldo * i.custo; if (v > 0) porCat[i.categoria] = (porCat[i.categoria] || 0) + v; });
-  let d = Object.entries(porCat).map(([nome, valor]) => ({ nome, valor })).sort((a, b) => b.valor - a.valor);
-  if (d.length > 8) d = d.slice(0, 7).concat({ nome: 'Outras', valor: d.slice(7).reduce((a, x) => a + x.valor, 0) });
+function barras(b) {
+  const W = 600, H = 240, pl = 58, pr = 8, pt = 10, pb = 28, iw = W - pl - pr, ih = H - pt - pb;
+  const max = Math.max(1, ...b.flatMap(x => [x.a, x.b])), e = Math.pow(10, Math.floor(Math.log10(max))), m = max / e, top = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * e;
+  const cur = v => 'R$ ' + (v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }));
+  const y = v => pt + ih - v / top * ih, slot = iw / b.length, bw = Math.max(3, Math.min(18, slot * .36)), passo = Math.ceil(b.length / 8);
+  let s = '';
+  for (let k = 0; k <= 4; k++) { const v = top / 4 * k; s += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${cur(v)}</text>`; }
+  b.forEach((x, k) => {
+    const cx = pl + slot * k + slot / 2, t = `<title>${esc(x.rot)} · Compras: ${brl(x.a)} · Saídas: ${brl(x.b)}</title>`;
+    s += `<g>${t}<rect x="${cx - bw - 1}" y="${y(x.a)}" width="${bw}" height="${pt + ih - y(x.a)}" rx="3" fill="var(--ac)"/><rect x="${cx + 1}" y="${y(x.b)}" width="${bw}" height="${pt + ih - y(x.b)}" rx="3" fill="var(--wa)"/><rect x="${cx - slot / 2}" y="${pt}" width="${slot}" height="${ih}" fill="transparent"/></g>`;
+    if (k % passo === 0) s += `<text x="${cx}" y="${H - 8}" text-anchor="middle">${esc(x.rot)}</text>`;
+  });
+  return `<div class="lg"><span><i style="background:var(--ac)"></i>Compras (notas)</span><span><i style="background:var(--wa)"></i>Saídas (a custo)</span></div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de barras de compras e saídas no período">${s}</svg>`;
+}
+function dash() {
+  const I = S.insumos, [ini, fim] = periodo();
+  const catDe = new Map(I.map(i => [i.id, i.categoria]));
+  const okCat = id => !F.cat || catDe.get(id) === F.cat;
+  const noPer = d => { if (!d) return false; const t = new Date(d); return t >= ini && t < fim; };
+  const IC = I.filter(i => !F.cat || i.categoria === F.cat);
+  const valor = IC.reduce((a, i) => a + i.saldo * i.custo, 0);
+  const baixos = IC.filter(i => i.saldo <= 0 || (i.minimo > 0 && i.saldo <= i.minimo));
+  const cp = IC.filter(i => i.preco > 0 && i.saldo > 0);
+  const vendaPot = cp.reduce((a, i) => a + i.saldo * i.preco, 0), lucro = vendaPot - cp.reduce((a, i) => a + i.saldo * i.custo, 0);
+  const movP = S.movs.filter(m => noPer(m.data) && okCat(m.insumoId));
+  const comprado = S.notas.filter(n => !n.estornada && noPer(n.data)).reduce((a, n) => a + n.itens.filter(x => okCat(x.insumoId)).reduce((b, x) => b + x.qtd * x.custo, 0), 0);
+  const custoDe = m => m.custo != null ? m.custo : ((I.find(x => x.id === m.insumoId) || {}).custo || 0);
+  const saidas = movP.filter(m => m.tipo === 'saida' && !m.estornoNota).reduce((a, m) => a + Math.abs(m.qtd) * custoDe(m), 0);
+  $('dRot').textContent = (F.per === 'tudo' ? 'Todo o histórico' : `${ini.getTime() ? ini.toLocaleDateString('pt-BR') : 'início'} a ${fim.getTime() > 8e15 ? 'hoje' : new Date(+fim - 864e5).toLocaleDateString('pt-BR')}`) + (F.cat ? ' · ' + F.cat : ' · todas as categorias') + '. Estoque e reposição mostram a situação de agora; compras, saídas e movimentações seguem o período.';
+  $('kpis').innerHTML = [
+    ['Valor em estoque (custo)', brl(valor), ''],
+    ['Lucro potencial', cp.length ? brl(lucro) : '–', cp.length ? `margem de ${Math.round(lucro / vendaPot * 100)}% sobre a venda` : 'Informe o preço de venda dos itens'],
+    ['Insumos cadastrados', IC.length, ''],
+    ['Precisam de reposição', baixos.length, '', baixos.length ? 'w' : ''],
+    ['Comprado no período', brl(comprado), 'notas de entrada'],
+    ['Saídas no período', brl(saidas), 'a preço de custo'],
+    ['Movimentações no período', movP.length, '']
+  ].map(([t, v, s, c]) => `<div class="kpi ${c || ''}"><span>${t}</span><b>${v}</b>${s ? `<small>${s}</small>` : ''}</div>`).join('');
+  // série de compras x saídas
+  const compras = [], sd = movP.filter(m => m.tipo === 'saida' && !m.estornoNota).map(m => ({ d: new Date(m.data), v: Math.abs(m.qtd) * custoDe(m) }));
+  S.notas.filter(n => !n.estornada && noPer(n.data)).forEach(n => compras.push({ d: new Date(n.data), v: n.itens.filter(x => okCat(x.insumoId)).reduce((b, x) => b + x.qtd * x.custo, 0) }));
+  const todos = compras.concat(sd).filter(x => x.v > 0);
+  if (!todos.length) $('barras').innerHTML = '<div class="empty">Sem compras nem saídas neste filtro.</div>';
+  else {
+    const dia = 864e5, agora = new Date(), t0 = new Date(Math.min(...todos.map(x => +x.d))), ini0 = ini.getTime() > 0 && +ini > +t0 ? ini : t0, fim0 = new Date(Math.min(+fim - 1, +agora));
+    const comeco = new Date(ini0.getFullYear(), ini0.getMonth(), ini0.getDate()), dias = Math.max(1, Math.round((+fim0 - +comeco) / dia) + 1), mensal = dias > 31;
+    const chave = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + (mensal ? '' : '-' + String(d.getDate()).padStart(2, '0'));
+    const bk = new Map(); let c = mensal ? new Date(comeco.getFullYear(), comeco.getMonth(), 1) : new Date(comeco);
+    while (+c <= +fim0 && bk.size < 400) { bk.set(chave(c), { rot: mensal ? String(c.getMonth() + 1).padStart(2, '0') + '/' + String(c.getFullYear()).slice(2) : String(c.getDate()).padStart(2, '0') + '/' + String(c.getMonth() + 1).padStart(2, '0'), a: 0, b: 0 }); c = mensal ? new Date(c.getFullYear(), c.getMonth() + 1, 1) : new Date(+c + dia + (c.getHours() ? 0 : 0)); if (!mensal) c = new Date(c.getFullYear(), c.getMonth(), c.getDate()); }
+    compras.forEach(x => { const k = bk.get(chave(x.d)); if (k) k.a += x.v; }); sd.forEach(x => { const k = bk.get(chave(x.d)); if (k) k.b += x.v; });
+    $('barras').innerHTML = barras([...bk.values()].slice(-24));
+  }
+  // ranking de saídas
+  const rk = {}; movP.filter(m => m.tipo === 'saida' && !m.estornoNota).forEach(m => { const o = rk[m.insumoId] || (rk[m.insumoId] = { nome: m.nome, un: m.unidade, q: 0, v: 0 }); o.q += Math.abs(m.qtd); o.v += Math.abs(m.qtd) * custoDe(m); });
+  const top5 = Object.values(rk).sort((a, b) => b.v - a.v).slice(0, 5);
+  $('top').innerHTML = top5.length ? `<div class="rank">${top5.map(x => `<div><div class="l"><b>${esc(x.nome)}</b><em>${nf(x.q)} ${esc(x.un)} · ${brl(x.v)}</em></div><div class="tr"><i style="width:${Math.max(3, Math.round(x.v / top5[0].v * 100))}%"></i></div></div>`).join('')}</div>` : '<div class="empty">Nenhuma saída neste filtro.</div>';
+    let d;
+  if (F.cat) d = IC.map(i => ({ nome: i.nome, valor: i.saldo * i.custo })).filter(x => x.valor > 0);
+  else { const por = {}; IC.forEach(i => { const v = i.saldo * i.custo; if (v > 0) por[i.categoria] = (por[i.categoria] || 0) + v; }); d = Object.entries(por).map(([nome, valor]) => ({ nome, valor })); }
+  d.sort((a, b) => b.valor - a.valor);
+  if (d.length > 8) d = d.slice(0, 7).concat({ nome: 'Outros', valor: d.slice(7).reduce((a, x) => a + x.valor, 0) });
+  $('tPizza').textContent = F.cat ? 'Valor em estoque por item' : 'Valor em estoque por categoria';
   $('pizza').innerHTML = d.length ? pizza(d) : '<div class="empty">Cadastre insumos com saldo e custo, ou lance uma nota, para ver o gráfico.</div>';
   $('baixos').innerHTML = baixos.length ? baixos.slice(0, 7).map(i => `<div class="res" style="background:var(--wa-l);color:var(--wa)">${esc(i.nome)}<span></span><em>${nf(i.saldo)} ${i.unidade}${i.minimo ? ' / mín. ' + nf(i.minimo) : ''}</em></div>`).join('') + (baixos.length > 7 ? `<p class="mut">e mais ${baixos.length - 7}…</p>` : '') : '<div class="empty">Tudo certo por aqui. Nenhum item abaixo do mínimo.</div>';
-  $('ultimas').innerHTML = tabelaMovs(S.movs.slice(0, 6));
-  $('todasMovs').innerHTML = tabelaMovs(S.movs);
-  const cats = [...new Set(I.map(i => i.categoria))].sort();
+  $('ultimas').innerHTML = tabelaMovs(movP.slice(0, 8), 'Nenhuma movimentação neste filtro.') + (movP.length > 8 ? `<p class="mut" style="margin:10px 0 0">Mostrando 8 de ${movP.length}. Veja todas na aba Movimentações.</p>` : '');
+}
+$('dPer').onchange = e => { F.per = e.target.value; $('wDe').hidden = $('wAte').hidden = F.per !== 'custom'; dash(); };
+$('dDe').onchange = e => { F.de = e.target.value; dash(); };
+$('dAte').onchange = e => { F.ate = e.target.value; dash(); };
+$('dCat').onchange = e => { F.cat = e.target.value; dash(); };
+$('dLimpa').onclick = () => { Object.assign(F, { per: 'mes', de: '', ate: '', cat: '' }); $('dPer').value = 'mes'; $('dDe').value = $('dAte').value = ''; $('dCat').value = ''; $('wDe').hidden = $('wAte').hidden = true; dash(); };
+
+function preencherCat(id, cats, todas = 'Todas') {
+  const el = $(id), atual = el.value;
+  el.innerHTML = `<option value="">${todas}</option>` + cats.map(c => `<option ${c === atual ? 'selected' : ''}>${esc(c)}</option>`).join('');
+  if (atual && !cats.includes(atual)) el.value = '';
+}
+function render() {
+  const cats = [...new Set(S.insumos.map(i => i.categoria))].sort();
   $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
-  const fc = $('fcat').value; $('fcat').innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option ${c === fc ? 'selected' : ''}>${esc(c)}</option>`).join('');
-  estoque();
-  $('stag').className = 'tag ' + (S.conectado ? 't-ok' : 't-wa'); $('stag').textContent = S.conectado ? 'Conectado à Cardápio Web' : 'Não conectado';
-  $('conectar').hidden = S.conectado || !S.podeConectar; $('puxar').hidden = !S.conectado;
-  const V = S.vendas || {}; $('vtag').className = 'tag ' + (V.ativo ? (V.erro ? 't-wa' : 't-ok') : 't-wa'); $('vtag').textContent = V.ativo ? (V.erro ? 'Erro na última consulta' : 'Ligada') : 'Desligada';
-  $('vcheck').hidden = !V.ativo;
-  $('vres').innerHTML = !V.ativo ? '<p class="mut">Para ligar, defina CW_API_KEY no servidor (chave do painel: Configurações → Integrações → API de Integração).</p>'
-    : (V.erro ? `<div class="msg">${esc(V.erro)}</div>` : '') + (V.ultimaExecucao ? `<p class="mut">Última consulta: ${new Date(V.ultimaExecucao).toLocaleString('pt-BR')}${V.ultimoResumo ? ` · ${V.ultimoResumo.baixados} baixados, ${V.ultimoResumo.estornados} devolvidos` : ''}</p>` : '')
-      + ((V.semVinculo || []).length ? `<p class="mut">Vendidos sem insumo correspondente (sem baixa): ${V.semVinculo.map(esc).join(', ')}</p>` : '');
-  if (!S.podeConectar && !S.conectado) $('sres').innerHTML = '<p class="mut">Para usar a sincronização é preciso o client_id do app cadastrado na Cardápio Web (variável CW_CLIENT_ID no servidor). O resto do NotaFlow funciona sem isso.</p>';
+  $('sug').innerHTML = S.insumos.map(i => `<option value="${esc(i.nome)}">${esc([i.codigo, i.ean].filter(Boolean).join(' · '))}</option>`).join('');
+  preencherCat('fcat', cats); preencherCat('dCat', cats, 'Todas as categorias'); preencherCat('fcatI', cats);
+  F.cat = $('dCat').value;
+  dash(); estoque(); notasTab(); saidaTab(); inventarioTab(); movsTab();
 }
 
 // ---------- estoque ----------
+let listaE = [];
+const margem = i => i.preco > 0 ? (i.preco - i.custo) / i.preco : null;
 function estoque() {
-  const q = $('busca').value.trim().toLowerCase(), c = $('fcat').value;
-  const l = S.insumos.filter(i => (!c || i.categoria === c) && (!q || (i.nome + ' ' + i.codigo).toLowerCase().includes(q))).sort((a, b) => a.nome.localeCompare(b.nome));
-  $('tbE').innerHTML = l.length ? l.map(i => { const [t, cl] = status(i); return `<tr data-id="${i.id}">
-    <td>${esc(i.nome)}${i.codigo ? `<small>Código ${esc(i.codigo)}</small>` : ''}</td><td>${esc(i.categoria)}</td>
-    <td class="r"><b>${nf(i.saldo)}</b> ${i.unidade}</td><td class="r">${i.minimo ? nf(i.minimo) : '–'}</td><td class="r">${brl(i.custo)}</td><td class="r">${brl(i.saldo * i.custo)}</td>
+  const q = norm($('busca').value), c = $('fcat').value, sit = $('fsit').value;
+  listaE = S.insumos.filter(i => (!c || i.categoria === c) && (!sit || status(i)[0] === sit) && (!q || (i.nome + ' ' + (i.codigo || '') + ' ' + (i.ean || '')).toLowerCase().includes(q))).sort((a, b) => a.nome.localeCompare(b.nome));
+  $('tbE').innerHTML = listaE.length ? listaE.map(i => { const [t, cl] = status(i), mg = margem(i); return `<tr data-id="${i.id}">
+    <td>${esc(i.nome)}${i.codigo || i.ean ? `<small>${[i.codigo && 'Código ' + esc(i.codigo), i.ean && 'EAN ' + esc(i.ean)].filter(Boolean).join(' · ')}</small>` : ''}</td><td>${esc(i.categoria)}</td>
+    <td class="r"><b>${nf(i.saldo)}</b> ${i.unidade}</td><td class="r">${i.minimo ? nf(i.minimo) : '–'}</td><td class="r">${brl(i.custo)}</td>
+    <td class="r">${i.preco > 0 ? brl(i.preco) : '–'}</td><td class="r">${mg == null ? '–' : `<span style="color:var(--${mg < 0 ? 'er' : 'ok'})">${Math.round(mg * 100)}%</span>`}</td><td class="r">${brl(i.saldo * i.custo)}</td>
     <td><span class="tag ${cl}">${t}</span></td>
     <td><div class="act"><button class="sm sec" data-a="entrada">+ Entrada</button><button class="sm sec" data-a="saida">− Saída</button><button class="sm sec" data-a="ajuste">Ajustar</button><button class="sm sec" data-a="edit">Editar</button><button class="sm dg" data-a="del" aria-label="Excluir ${esc(i.nome)}">✕</button></div></td></tr>`; }).join('')
-    : `<tr><td colspan="8" class="empty">${S.insumos.length ? 'Nada encontrado com esse filtro.' : 'Estoque vazio. Cadastre um insumo, lance uma nota ou sincronize com a Cardápio Web.'}</td></tr>`;
+    : `<tr><td colspan="10" class="empty">${S.insumos.length ? 'Nada encontrado com esse filtro.' : 'Estoque vazio. Cadastre um insumo ou lance uma nota de entrada.'}</td></tr>`;
 }
-$('busca').oninput = estoque; $('fcat').onchange = estoque;
+$('busca').oninput = estoque; $('fcat').onchange = estoque; $('fsit').onchange = estoque;
+$('expE').onclick = () => baixar('estoque', [['Nome', 'Código', 'EAN', 'Categoria', 'Unidade', 'Saldo', 'Mínimo', 'Custo', 'Preço de venda', 'Margem %', 'Valor em estoque', 'Situação']]
+  .concat(listaE.map(i => { const mg = margem(i); return [i.nome, i.codigo, i.ean, i.categoria, i.unidade, dec(i.saldo), dec(i.minimo), dec(i.custo), dec(i.preco), mg == null ? '' : dec(mg * 100), dec(i.saldo * i.custo), status(i)[0]]; })));
 document.querySelectorAll('[data-fecha]').forEach(b => b.onclick = () => b.closest('dialog').close());
 
 let editId = null;
 function abrirInsumo(i) {
   editId = i ? i.id : null; $('tI').textContent = i ? 'Editar insumo' : 'Novo insumo'; $('wSaldo').hidden = !!i;
   $('iNome').value = i ? i.nome : ''; $('iCat').value = i ? i.categoria : 'Geral'; $('iUn').value = i ? i.unidade : 'UN';
-  $('iCusto').value = i ? i.custo : 0; $('iMin').value = i ? i.minimo : 0; $('iCod').value = i ? i.codigo : ''; $('iSaldo').value = 0;
+  $('iCusto').value = i ? i.custo : 0; $('iPreco').value = i ? i.preco || 0 : 0; $('iMin').value = i ? i.minimo : 0; $('iCod').value = i ? i.codigo || '' : ''; $('iEan').value = i ? i.ean || '' : ''; $('iSaldo').value = 0;
   $('dI').showModal();
 }
 $('novo').onclick = () => abrirInsumo(null);
 $('fI').onsubmit = async e => {
   e.preventDefault();
-  const b = { nome: $('iNome').value, categoria: $('iCat').value, unidade: $('iUn').value, custo: $('iCusto').value, minimo: $('iMin').value, codigo: $('iCod').value, saldo: $('iSaldo').value };
+  const b = { nome: $('iNome').value, categoria: $('iCat').value, unidade: $('iUn').value, custo: $('iCusto').value, preco: $('iPreco').value, minimo: $('iMin').value, codigo: $('iCod').value, ean: $('iEan').value, saldo: $('iSaldo').value };
   try { await req(editId ? '/api/insumos/' + editId : '/api/insumos', editId ? 'PUT' : 'POST', b); $('dI').close(); toast('Insumo salvo'); carregar(); } catch (x) { toast(x.message); }
 };
 
@@ -295,11 +491,12 @@ $('fM').onsubmit = async e => {
 // ---------- entrada de nota ----------
 let nota = null;
 const erro = t => { $('msg').textContent = t; $('msg').hidden = !t; };
-const passo = n => { $('n1').hidden = n !== 1; $('n2').hidden = n !== 2; $('n3').hidden = n !== 3; scrollTo({ top: 0, behavior: 'smooth' }); };
+const passo = n => { $('n1').hidden = n !== 1; $('n2').hidden = n !== 2; $('n3').hidden = n !== 3; $('n4').hidden = n !== 4; scrollTo({ top: 0, behavior: 'smooth' }); };
 const aba = n => { $('p1').hidden = n !== 1; $('p2').hidden = n !== 2; $('t1').setAttribute('aria-selected', n === 1); $('t2').setAttribute('aria-selected', n === 2); erro(''); };
 $('t1').onclick = () => aba(1); $('t2').onclick = () => aba(2);
 const unidade = u => { u = (u || '').toUpperCase(); return ['KG', 'KGS'].includes(u) ? 'KG' : ['L', 'LT', 'LTS'].includes(u) ? 'L' : 'UN'; };
 const tx = (el, tag) => { const n = el.getElementsByTagName(tag)[0]; return n ? n.textContent.trim() : ''; };
+const eanOk = v => /^\d{8,14}$/.test(v);
 function lerXml(txt) {
   const d = new DOMParser().parseFromString(txt, 'application/xml');
   if (d.getElementsByTagName('parsererror').length) throw new Error('Esse arquivo não é um XML válido. Confira se copiou a nota inteira.');
@@ -307,7 +504,8 @@ function lerXml(txt) {
   if (!inf) throw new Error('Não encontrei uma NF-e nesse XML.');
   const emit = d.getElementsByTagName('emit')[0];
   const itens = [...d.getElementsByTagName('det')].map(det => { const p = det.getElementsByTagName('prod')[0];
-    return { on: true, codigo: tx(p, 'cProd'), nome: tx(p, 'xProd'), unidade: unidade(tx(p, 'uCom')), custo: parseFloat(tx(p, 'vUnCom')) || 0, qtd: parseFloat(tx(p, 'qCom')) || 0, uCom: tx(p, 'uCom') }; });
+    const ean = [tx(p, 'cEAN'), tx(p, 'cEANTrib')].find(eanOk) || '';
+    return { on: true, codigo: tx(p, 'cProd'), ean, nome: tx(p, 'xProd'), unidade: unidade(tx(p, 'uCom')), custo: parseFloat(tx(p, 'vUnCom')) || 0, qtd: parseFloat(tx(p, 'qCom')) || 0, uCom: tx(p, 'uCom') }; });
   return { chave: (inf.getAttribute('Id') || '').replace('NFe', ''), fornecedor: emit ? tx(emit, 'xNome') : '', itens };
 }
 function resumo() {
@@ -318,7 +516,7 @@ function resumo() {
 function mostrar() {
   $('forn').textContent = nota.fornecedor || 'Nota de entrada';
   $('tbN').innerHTML = nota.itens.map((i, k) => `<tr data-k="${k}"><td><input type="checkbox" checked data-f="on" style="width:auto" aria-label="Incluir ${esc(i.nome)}"></td>
-    <td><input value="${esc(i.nome)}" data-f="nome"><small>Código ${esc(i.codigo)} · vem em ${esc(i.uCom)}</small></td>
+    <td><input value="${esc(i.nome)}" data-f="nome"><small>Código ${esc(i.codigo)}${i.ean ? ' · EAN ' + esc(i.ean) : ''} · vem em ${esc(i.uCom)}</small></td>
     <td><select data-f="unidade">${['UN', 'KG', 'L'].map(u => `<option ${u === i.unidade ? 'selected' : ''}>${u}</option>`).join('')}</select></td>
     <td><input type="number" step="0.01" min="0" value="${i.custo.toFixed(2)}" data-f="custo"></td>
     <td><input type="number" step="0.001" min="0" value="${i.qtd}" data-f="qtd"></td></tr>`).join('');
@@ -331,18 +529,65 @@ $('tbN').addEventListener('input', e => {
 });
 $('todos').onchange = e => { nota.itens.forEach(i => i.on = e.target.checked); document.querySelectorAll('#tbN tr').forEach(tr => { tr.classList.toggle('off', !e.target.checked); tr.querySelector('[data-f=on]').checked = e.target.checked; }); resumo(); };
 function abrir(txt) { try { erro(''); nota = lerXml(txt); mostrar(); } catch (e) { erro(e.message); } }
-$('arq').onchange = async e => { if (e.target.files[0]) abrir(await e.target.files[0].text()); e.target.value = ''; };
+$('arq').onchange = async e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) await abrirArquivos(fs); };
 $('ler').onclick = () => $('txt').value.trim() ? abrir($('txt').value) : erro('Cole o XML da nota no campo antes de ler.');
 const dz = $('drop');
 dz.ondragover = e => { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = () => dz.classList.remove('on');
-dz.ondrop = async e => { e.preventDefault(); dz.classList.remove('on'); if (e.dataTransfer.files[0]) abrir(await e.dataTransfer.files[0].text()); };
-$('outra').onclick = $('nova').onclick = () => { $('txt').value = ''; nota = null; passo(1); };
+dz.ondrop = async e => { e.preventDefault(); dz.classList.remove('on'); const fs = [...e.dataTransfer.files]; if (fs.length) await abrirArquivos(fs); };
+$('outra').onclick = () => { if (revisando != null) { revisando = null; renderLote(); return passo(4); } $('txt').value = ''; nota = null; passo(1); };
+$('nova').onclick = () => { $('txt').value = ''; nota = null; lote = null; revisando = null; passo(1); };
+
+// ----- vários XMLs de uma vez -----
+let lote = null, revisando = null;
+async function abrirArquivos(fs) {
+  if (fs.length === 1) { lote = null; return abrir(await fs[0].text()); }
+  erro(''); lote = [];
+  const vistas = new Set();
+  for (const f of fs) {
+    const l = { arq: f.name, nota: null, erro: '', dup: '', feita: false, falha: '', on: true };
+    try {
+      l.nota = lerXml(await f.text());
+      if (S.notas.some(n => n.chave && n.chave === l.nota.chave && !n.estornada)) l.dup = 'Já lançada';
+      else if (l.nota.chave && vistas.has(l.nota.chave)) l.dup = 'Repetida no lote';
+      vistas.add(l.nota.chave);
+    } catch (x) { l.erro = x.message.startsWith('Não encontrei') ? 'Não é uma NF-e' : 'XML inválido'; }
+    l.on = !l.erro && !l.dup; lote.push(l);
+  }
+  renderLote(); passo(4);
+}
+const selecionavel = l => l.nota && !l.erro && !l.dup && !l.feita;
+const totNota = n => n.itens.reduce((a, i) => a + i.qtd * i.custo, 0);
+function renderLote() {
+  if (!lote) return;
+  $('tbL').innerHTML = lote.map((l, k) => { const [t, cl] = l.feita ? ['Lançada', 't-ok'] : l.falha ? [l.falha, 't-er'] : l.erro ? [l.erro, 't-er'] : l.dup ? [l.dup, 't-wa'] : ['Pronta', 't-ac'];
+    return `<tr data-k="${k}"><td><input type="checkbox" ${l.on && selecionavel(l) ? 'checked' : ''} ${selecionavel(l) ? '' : 'disabled'} style="width:auto" aria-label="Incluir ${esc(l.arq)}"></td><td>${esc(l.arq)}</td><td>${esc(l.nota ? l.nota.fornecedor : '–')}</td>
+      <td class="r">${l.nota ? l.nota.itens.length : '–'}</td><td class="r">${l.nota ? brl(totNota(l.nota)) : '–'}</td><td><span class="tag ${cl}">${esc(t)}</span></td>
+      <td><div class="act">${selecionavel(l) ? '<button class="sm sec" data-a="rev">Revisar</button>' : ''}</div></td></tr>`; }).join('');
+  const sel = lote.filter(l => l.on && selecionavel(l));
+  $('ltot').textContent = brl(sel.reduce((a, l) => a + totNota(l.nota), 0));
+  $('lenv').disabled = !sel.length; $('lenv').textContent = sel.length ? `Lançar ${sel.length} ${sel.length > 1 ? 'notas' : 'nota'}` : 'Lançar notas';
+}
+$('tbL').onchange = e => { lote[e.target.closest('tr').dataset.k].on = e.target.checked; renderLote(); };
+$('tbL').onclick = e => { const b = e.target.closest('button'); if (!b) return; revisando = +b.closest('tr').dataset.k; nota = lote[revisando].nota; $('ncat').value = $('lcat').value; mostrar(); };
+$('loteVolta').onclick = () => { lote = null; passo(1); };
+$('lenv').onclick = async () => {
+  const sel = lote.filter(l => l.on && selecionavel(l)); let ok = 0, falhas = 0;
+  $('lenv').disabled = true; $('lenv').innerHTML = '<span class="sp"></span>Lançando…';
+  for (const l of sel) {
+    try { await req('/api/nota', 'POST', { chave: l.nota.chave, fornecedor: l.nota.fornecedor, itens: l.nota.itens.map(i => ({ ...i, categoria: $('lcat').value || 'Geral' })) }); l.feita = true; l.falha = ''; ok++; }
+    catch (x) { l.falha = x.message.length > 40 ? x.message.slice(0, 40) + '…' : x.message; falhas++; }
+    renderLote();
+  }
+  await carregar(); renderLote();
+  toast(`${ok} ${ok === 1 ? 'nota lançada' : 'notas lançadas'}${falhas ? ` · ${falhas} com erro` : ''}`);
+};
 $('verE').onclick = () => { location.hash = '#estoque'; passo(1); };
 $('env').onclick = async () => {
   const sel = nota.itens.filter(i => i.on);
   $('env').disabled = true; $('env').innerHTML = '<span class="sp"></span>Lançando…';
   try {
     const r = await req('/api/nota', 'POST', { chave: nota.chave, fornecedor: nota.fornecedor, itens: sel.map(i => ({ ...i, categoria: $('ncat').value || 'Geral' })) });
+    if (revisando != null) { const l = lote[revisando]; l.feita = true; l.on = false; revisando = null; carregar(); renderLote(); passo(4); toast(`${r.length} itens lançados`); $('env').disabled = false; $('env').textContent = 'Dar entrada no estoque'; return; }
     $('rt').textContent = `${r.length} itens lançados no estoque`;
     $('res').innerHTML = r.map(x => `<div class="res">✓<span>${esc(x.nome)}</span><em>${esc(x.acao)} · saldo ${nf(x.saldo)} ${esc(x.unidade)}</em></div>`).join('');
     passo(3); carregar();
@@ -350,19 +595,121 @@ $('env').onclick = async () => {
   $('env').disabled = false; $('env').textContent = 'Dar entrada no estoque';
 };
 
-// ---------- sincronização ----------
-$('puxar').onclick = async () => {
-  $('puxar').disabled = true; $('puxar').innerHTML = '<span class="sp"></span>Puxando…';
-  try { const r = await req('/api/sincronizar', 'POST'); $('sres').innerHTML = `<div class="res">✓<span>${r.total} insumos na Cardápio Web</span><em>${r.novos} novos · ${r.atualizados} atualizados</em></div>`; carregar(); }
-  catch (e) { $('sres').innerHTML = `<div class="msg">${esc(e.message)}</div>`; }
-  $('puxar').disabled = false; $('puxar').textContent = 'Puxar insumos';
+// ---------- notas e fornecedores ----------
+const abertas = new Set();
+let listaN = [];
+const stNota = n => n.estornada ? ['Estornada', 't-er'] : n.legado ? ['Sem detalhes', 't-wa'] : ['Lançada', 't-ok'];
+function notasTab() {
+  const q = norm($('buscaN').value);
+  listaN = S.notas.filter(n => !q || norm(n.fornecedor + ' ' + n.chave).includes(q));
+  $('tbN2').innerHTML = listaN.length ? listaN.map(n => {
+    const [t, cl] = stNota(n), aberta = abertas.has(n.id) && n.itens.length;
+    return `<tr data-id="${n.id}"><td>${fmtData(n.data)}</td><td>${esc(n.fornecedor || '(sem fornecedor)')}${n.chave ? `<small>Chave …${esc(n.chave.slice(-12))}</small>` : ''}</td>
+      <td class="r">${n.itens.length || '–'}</td><td class="r">${n.itens.length ? brl(n.total) : '–'}</td><td><span class="tag ${cl}">${t}</span></td>
+      <td><div class="act">${n.itens.length ? `<button class="sm sec" data-a="ver">${aberta ? 'Ocultar itens' : 'Ver itens'}</button>` : ''}${!n.estornada && !n.legado && n.itens.length ? '<button class="sm dg" data-a="est">Estornar</button>' : ''}</div></td></tr>`
+      + (aberta ? `<tr><td colspan="6" style="background:var(--bg)"><table style="min-width:0"><thead><tr><th>Produto</th><th class="r">Quantidade</th><th class="r">Custo unit.</th><th class="r">Subtotal</th></tr></thead><tbody>${n.itens.map(x =>
+        `<tr><td>${esc(x.nome)}</td><td class="r">${nf(x.qtd)} ${esc(x.unidade)}</td><td class="r">${brl(x.custo)}</td><td class="r">${brl(x.qtd * x.custo)}</td></tr>`).join('')}</tbody></table></td></tr>` : '');
+  }).join('') : `<tr><td colspan="6" class="empty">${S.notas.length ? 'Nada encontrado com esse filtro.' : 'Nenhuma nota lançada ainda.'}</td></tr>`;
+  const por = {};
+  S.notas.filter(n => !n.estornada && n.itens.length).forEach(n => { const k = n.fornecedor || '(sem fornecedor)', o = por[k] || (por[k] = { nome: k, notas: 0, total: 0, ultima: null }); o.notas++; o.total += n.total; if (n.data && (!o.ultima || n.data > o.ultima)) o.ultima = n.data; });
+  const f = Object.values(por).sort((a, b) => b.total - a.total), geral = f.reduce((a, x) => a + x.total, 0);
+  $('forns').innerHTML = f.length ? `<table><thead><tr><th>Fornecedor</th><th class="r">Notas</th><th class="r">Total comprado</th><th class="r">% do total</th><th>Última compra</th></tr></thead><tbody>${f.map(x =>
+    `<tr><td>${esc(x.nome)}</td><td class="r">${x.notas}</td><td class="r">${brl(x.total)}</td><td class="r">${Math.round(x.total / geral * 100)}%</td><td>${fmtData(x.ultima)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Quando você lançar notas, o total por fornecedor aparece aqui.</div>';
+}
+$('buscaN').oninput = notasTab;
+$('tbN2').onclick = async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const n = S.notas.find(x => x.id === b.closest('tr').dataset.id);
+  if (b.dataset.a === 'ver') { abertas.has(n.id) ? abertas.delete(n.id) : abertas.add(n.id); return notasTab(); }
+  if (!confirm(`Estornar a nota de ${n.fornecedor || 'fornecedor não informado'} (${brl(n.total)})?\nO que ela trouxe será retirado do estoque.`)) return;
+  try { await req(`/api/notas/${n.id}/estornar`, 'POST'); toast('Nota estornada'); carregar(); } catch (x) { toast(x.message); }
+};
+$('expN').onclick = () => baixar('notas', [['Data', 'Fornecedor', 'Chave', 'Itens', 'Total', 'Situação']]
+  .concat(listaN.map(n => [n.data ? new Date(n.data).toLocaleString('pt-BR') : '', n.fornecedor, n.chave, n.itens.length, dec(n.total), stNota(n)[0]])));
+
+// ---------- saída rápida ----------
+let saida = [];
+function resolver(t) {
+  t = norm(t); if (!t) return null;
+  const I = S.insumos;
+  const ex = I.find(i => norm(i.ean) === t || norm(i.codigo) === t) || I.find(i => norm(i.nome) === t);
+  if (ex) return ex;
+  const parc = I.filter(i => norm(i.nome + ' ' + i.codigo + ' ' + i.ean).includes(t));
+  if (parc.length === 1) return parc[0];
+  toast(parc.length ? `${parc.length} itens combinam. Digite mais um pouco.` : 'Nenhum item encontrado.'); return null;
+}
+function addSaida() {
+  const i = resolver($('sBusca').value); if (!i) return;
+  const q = num($('sQtd').value); if (!(q > 0)) return toast('Informe uma quantidade válida.');
+  const l = saida.find(x => x.id === i.id); if (l) l.qtd = num(l.qtd + q); else saida.push({ id: i.id, qtd: q });
+  $('sBusca').value = ''; $('sQtd').value = 1; saidaTab(); $('sBusca').focus();
+}
+function saidaTab() {
+  saida = saida.filter(l => S.insumos.some(i => i.id === l.id));
+  $('tbS').innerHTML = saida.length ? saida.map(l => { const i = S.insumos.find(x => x.id === l.id), sem = l.qtd > i.saldo;
+    return `<tr data-id="${i.id}"><td>${esc(i.nome)}${sem ? ' <span class="tag t-er">Saldo insuficiente</span>' : ''}</td><td class="r">${nf(i.saldo)} ${i.unidade}</td>
+      <td><input type="number" min="0.001" step="0.001" value="${l.qtd}" aria-label="Quantidade de ${esc(i.nome)}"></td><td><div class="act"><button class="sm dg" aria-label="Remover ${esc(i.nome)}">✕</button></div></td></tr>`; }).join('')
+    : '<tr><td colspan="4" class="empty">Nenhum item na lista.</td></tr>';
+  $('sOk').disabled = !saida.length; $('sOk').textContent = saida.length ? `Dar saída em ${saida.length} ${saida.length > 1 ? 'itens' : 'item'}` : 'Dar saída';
+}
+$('sAdd').onclick = addSaida;
+$('sBusca').onkeydown = $('sQtd').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); addSaida(); } };
+$('tbS').onchange = e => { const l = saida.find(x => x.id === e.target.closest('tr').dataset.id); const q = num(e.target.value); if (l && q > 0) l.qtd = q; saidaTab(); };
+$('tbS').onclick = e => { const b = e.target.closest('button'); if (b) { saida = saida.filter(x => x.id !== b.closest('tr').dataset.id); saidaTab(); } };
+$('sOk').onclick = async () => {
+  $('sOk').disabled = true;
+  try { await req('/api/saidas', 'POST', { itens: saida.map(l => ({ insumoId: l.id, qtd: l.qtd })), obs: $('sObs').value });
+    saida = []; $('sObs').value = ''; toast('Saída registrada'); await carregar(); }
+  catch (x) { toast(x.message); saidaTab(); }
 };
 
-$('vcheck').onclick = async () => {
-  $('vcheck').disabled = true; $('vcheck').innerHTML = '<span class="sp"></span>Consultando…';
-  try { await req('/api/vendas/verificar', 'POST'); await carregar(); } catch (e) { toast(e.message); }
-  $('vcheck').disabled = false; $('vcheck').textContent = 'Verificar pedidos agora';
+// ---------- inventário ----------
+const contagem = {};
+const contado = id => { const v = contagem[id]; return v === undefined || v === '' || !(Number(v) >= 0) ? null : num(v); };
+function difHtml(i) {
+  const c = contado(i.id); if (c == null) return ['–', '–'];
+  const d = num(c - i.saldo);
+  return [d === 0 ? '<span class="tag t-ok">Confere</span>' : `<span class="tag ${d > 0 ? 't-ac' : 't-er'}">${d > 0 ? '+' : ''}${nf(d)} ${i.unidade}</span>`, d === 0 ? '–' : brl(d * i.custo)];
+}
+function resumoI() {
+  const l = S.insumos.filter(i => contado(i.id) != null), dif = l.filter(i => contado(i.id) !== i.saldo);
+  $('resI').textContent = l.length ? `${l.length} contados · ${dif.length} com diferença · ${brl(dif.reduce((a, i) => a + (contado(i.id) - i.saldo) * i.custo, 0))} em valor` : 'Nenhum item contado ainda.';
+  $('aplicaI').disabled = !l.length; $('limpaI').disabled = !l.length;
+}
+function inventarioTab() {
+  const q = norm($('buscaI').value), c = $('fcatI').value;
+  const l = S.insumos.filter(i => (!c || i.categoria === c) && (!q || norm(i.nome + ' ' + i.codigo + ' ' + i.ean).includes(q))).sort((a, b) => a.nome.localeCompare(b.nome));
+  $('tbI').innerHTML = l.length ? l.map(i => { const [d, v] = difHtml(i);
+    return `<tr data-id="${i.id}"><td>${esc(i.nome)}${i.codigo || i.ean ? `<small>${[i.codigo && 'Código ' + esc(i.codigo), i.ean && 'EAN ' + esc(i.ean)].filter(Boolean).join(' · ')}</small>` : ''}</td><td>${esc(i.categoria)}</td>
+      <td class="r">${nf(i.saldo)} ${i.unidade}</td><td><input type="number" min="0" step="0.001" placeholder="contar" value="${esc(contagem[i.id] ?? '')}" aria-label="Contagem de ${esc(i.nome)}" style="text-align:right"></td>
+      <td class="r" data-d>${d}</td><td class="r" data-v>${v}</td></tr>`; }).join('') : '<tr><td colspan="6" class="empty">Nada encontrado com esse filtro.</td></tr>';
+  resumoI();
+}
+$('buscaI').oninput = inventarioTab; $('fcatI').onchange = inventarioTab;
+$('tbI').oninput = e => {
+  const tr = e.target.closest('tr'), i = S.insumos.find(x => x.id === tr.dataset.id); if (!i) return;
+  contagem[i.id] = e.target.value; const [d, v] = difHtml(i); tr.querySelector('[data-d]').innerHTML = d; tr.querySelector('[data-v]').innerHTML = v; resumoI();
 };
+$('limpaI').onclick = () => { for (const k in contagem) delete contagem[k]; inventarioTab(); };
+$('aplicaI').onclick = async () => {
+  const l = S.insumos.filter(i => contado(i.id) != null), dif = l.filter(i => contado(i.id) !== i.saldo);
+  if (!confirm(`Aplicar a contagem de ${l.length} itens?\n${dif.length} terão o saldo ajustado.`)) return;
+  $('aplicaI').disabled = true;
+  try { const r = await req('/api/inventario', 'POST', { itens: l.map(i => ({ insumoId: i.id, contado: contado(i.id) })) });
+    for (const k in contagem) delete contagem[k]; toast(`Inventário aplicado: ${r.ajustados} ajustes`); await carregar(); }
+  catch (x) { toast(x.message); resumoI(); }
+};
+
+// ---------- movimentações ----------
+let listaM = [];
+function movsTab() {
+  const q = norm($('buscaM').value), t = $('ftipo').value;
+  listaM = S.movs.filter(m => (!t || m.tipo === t) && (!q || norm(m.nome + ' ' + (m.obs || '')).includes(q)));
+  $('todasMovs').innerHTML = tabelaMovs(listaM.slice(0, 1000), 'Nenhuma movimentação encontrada.') + (listaM.length > 1000 ? `<p class="mut" style="margin:10px 0 0">Mostrando 1000 de ${listaM.length}. Exporte o CSV para ver todas.</p>` : '');
+}
+$('buscaM').oninput = movsTab; $('ftipo').onchange = movsTab;
+$('expM').onclick = () => baixar('movimentacoes', [['Data', 'Insumo', 'Tipo', 'Quantidade', 'Unidade', 'Custo', 'Observação']]
+  .concat(listaM.map(m => [new Date(m.data).toLocaleString('pt-BR'), m.nome, TAG[m.tipo][0], dec(m.qtd), m.unidade, m.custo != null ? dec(m.custo) : '', m.obs || ''])));
 
 ir(); carregar().catch(e => toast(e.message));
 </script>
